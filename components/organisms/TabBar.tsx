@@ -4,8 +4,7 @@ import { TabBar as AntTabBar } from 'antd-mobile';
 import {
   AppOutline,
   AppstoreOutline,
-  MessageFill,
-  MessageOutline,
+  BellOutline,
   UserOutline,
 } from 'antd-mobile-icons';
 import { usePathname, useRouter } from 'next/navigation';
@@ -14,19 +13,14 @@ export default function TabBar() {
   const path = usePathname();
   const router = useRouter();
 
-  console.log(path);
-
   const handleChangeKey = (key: string) => {
     router.push(key);
   };
 
-  const switchMsgIcon = (active: boolean) =>
-    active ? <MessageFill /> : <MessageOutline />;
-
   const tabs = [
     {
       key: '/',
-      title: 'Home',
+      title: 'For You',
       icon: <AppOutline />,
     },
     {
@@ -35,9 +29,9 @@ export default function TabBar() {
       icon: <AppstoreOutline />,
     },
     {
-      key: '/message',
-      title: 'Message',
-      icon: switchMsgIcon,
+      key: '/notification',
+      title: 'Notifications',
+      icon: <BellOutline />,
     },
     {
       key: '/profile',
