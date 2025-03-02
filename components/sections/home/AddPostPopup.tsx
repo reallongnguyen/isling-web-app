@@ -8,11 +8,14 @@ import {
   Popup,
   SafeArea,
   TextArea,
+  Toast,
 } from 'antd-mobile';
-import { PicturesOutline, UserOutline } from 'antd-mobile-icons';
+import { UserOutline } from 'antd-mobile-icons';
 import { useAtom } from 'jotai';
 import Image from 'next/image';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useEmotionService } from '@/modules/emotion/hooks/useEmotionService';
+import { useQueryClient } from '@tanstack/react-query';
 
 const emotions = [
   { label: '😊', value: 'joy' },
@@ -21,6 +24,8 @@ const emotions = [
   { label: '😨', value: 'fear' },
   { label: '🤡', value: 'joker' },
 ];
+
+const MAX_NOTE_LENGTH = 256;
 
 export interface AddPostPopupProps {
   visible?: boolean;
@@ -32,17 +37,77 @@ export default function AddPostPopup(props: Readonly<AddPostPopupProps>) {
 
   const { profile } = useLoggedInUser();
   const [emotion, setEmotion] = useAtom(emotionAtom);
-  const [content, setContent] = useState('');
+  const [note, setNote] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const { createEmotion, isCreating } = useEmotionService();
+  const queryClient = useQueryClient();
+
+  // Reset form when popup is opened/closed
+  useEffect(() => {
+    if (!visible) {
+      setNote('');
+      // Don't reset emotion as it's shared state
+    }
+  }, [visible]);
 
   const handleChangeEmotion = (newEmotion: string) => () => {
     if (emotion === newEmotion) {
       setEmotion('neutral');
+      return;
+    }
+    setEmotion(newEmotion);
+  };
 
+  const handleNoteChange = (value: string) => {
+    // Limit note to MAX_NOTE_LENGTH characters
+    if (value.length <= MAX_NOTE_LENGTH) {
+      setNote(value);
+    }
+  };
+
+  const handlePost = async () => {
+    if (!emotion || emotion === 'neutral') {
+      Toast.show({
+        content: 'Please select an emotion',
+        position: 'bottom',
+      });
       return;
     }
 
-    setEmotion(newEmotion);
+    try {
+      setIsSubmitting(true);
+
+      // Create the emotion with optional note
+      await createEmotion({
+        type: emotion as 'joy' | 'sadness' | 'anger' | 'fear' | 'joker',
+        note: note.trim() || null,
+      });
+
+      // Invalidate feeds query to refresh the feed
+      queryClient.invalidateQueries({ queryKey: ['feeds'] });
+
+      // Close the popup
+      if (close) {
+        close();
+      }
+
+      // Show success message
+      Toast.show({
+        content: 'Emotion posted successfully',
+        position: 'bottom',
+      });
+    } catch (error) {
+      console.error('Error posting emotion:', error);
+      Toast.show({
+        content: 'Failed to post emotion. Please try again.',
+        position: 'bottom',
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  const remainingChars = MAX_NOTE_LENGTH - note.length;
 
   return (
     <Popup
@@ -52,7 +117,7 @@ export default function AddPostPopup(props: Readonly<AddPostPopupProps>) {
       onMaskClick={close}
     >
       <NavBar back='Cancel' backIcon={false} onBack={close}>
-        <div className='font-semibold'>New Post</div>
+        <div className='font-semibold'>New Emotion</div>
       </NavBar>
       <Divider className='mt-0!' />
       <div className='mx-3 flex'>
@@ -76,33 +141,47 @@ export default function AddPostPopup(props: Readonly<AddPostPopupProps>) {
         <div className='ml-4 grow'>
           <div className='flex justify-between items-center'>
             <div className='font-semibold text-lg'>{profile?.firstName}</div>
+            <div className='text-sm text-gray-500'>
+              {emotion !== 'neutral' && (
+                <span>
+                  Feeling{' '}
+                  <span className='font-medium'>
+                    {emotion} {emotions.find((e) => e.value === emotion)?.label}
+                  </span>
+                </span>
+              )}
+            </div>
           </div>
           <div className='mt-0.5'>
             <TextArea
               autoFocus
               autoSize
-              placeholder='Your story'
-              value={content}
-              onChange={setContent}
+              placeholder='How are you feeling?'
+              value={note}
+              onChange={handleNoteChange}
+              maxLength={MAX_NOTE_LENGTH}
             />
-            <div className='flex space-x-2 items-center'>
-              <PicturesOutline className='text-2xl text-gray-400' />
-              <div className='border-l border-gray-100 ml-2 pr-2 h-3' />
-              <div className='flex space-x-1 mt-0.5'>
-                {emotions.map((option) => (
-                  <div key={option.value}>
-                    <Button
-                      className={`p-0! m-0! w-6! h-6! ${
-                        emotion === option.value
-                          ? 'bg-blue-400/40! border-blue-400/60!'
-                          : ''
-                      }`}
-                      onClick={handleChangeEmotion(option.value)}
-                    >
-                      {option.label}
-                    </Button>
-                  </div>
-                ))}
+            <div className='flex justify-between items-center'>
+              <div className='flex space-x-2 items-center'>
+                <div className='flex space-x-1 mt-0.5'>
+                  {emotions.map((option) => (
+                    <div key={option.value}>
+                      <Button
+                        className={`p-0! m-0! w-6! h-6! ${
+                          emotion === option.value
+                            ? 'bg-blue-400/40! border-blue-400/60!'
+                            : ''
+                        }`}
+                        onClick={handleChangeEmotion(option.value)}
+                      >
+                        {option.label}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <div className='text-xs text-gray-400'>
+                {remainingChars} characters left
               </div>
             </div>
           </div>
@@ -111,7 +190,14 @@ export default function AddPostPopup(props: Readonly<AddPostPopupProps>) {
       <div className='fixed bottom-0 w-full backdrop-blur-md bg-white/40'>
         <div className='mx-3 my-2 flex justify-between'>
           <div className=''></div>
-          <Button color='primary'>Post</Button>
+          <Button
+            color='primary'
+            loading={isSubmitting || isCreating}
+            disabled={isSubmitting || isCreating || emotion === 'neutral'}
+            onClick={handlePost}
+          >
+            Post
+          </Button>
         </div>
         <SafeArea position='bottom' />
       </div>

@@ -2,14 +2,14 @@
 
 import TabBar from '@/components/organisms/TabBar';
 import React, { useState } from 'react';
-import { InfiniteScroll, PullToRefresh, ResultPage } from 'antd-mobile';
+import { ResultPage } from 'antd-mobile';
 import EmotionLand from '@/components/organisms/EmotionLand';
 import useLoggedInUser from '@/modules/user/hooks/useLoggedInUser';
 import { useAtomValue } from 'jotai';
 import { emotionAtom } from '@/modules/ping/store/emotion';
-import PostCard from '@/components/organisms/contents/PostCard';
 import { FireFill } from 'antd-mobile-icons';
 import AddPostPopup from '@/components/sections/home/AddPostPopup';
+import FeedList from '@/components/organisms/contents/FeedList';
 
 const emotionColorMap: Record<string, string> = {
   joy: '#FACC31',
@@ -54,27 +54,22 @@ export default function Home() {
           title={<div className='h-4'></div>}
           icon={<div className='h-4'></div>}
         >
-          <PullToRefresh>
-            {profile && (
-              <Card className='p-4' style={{ height: 64 }}>
-                <EmotionLand
-                  profile={profile}
-                  onClick={() => setShowAddPost(true)}
-                />
-              </Card>
-            )}
-            {[1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
-              <Card key={index} className='p-4 mt-3'>
-                <PostCard />
-              </Card>
-            ))}
-          </PullToRefresh>
-          <InfiniteScroll
-            loadMore={async (isRetry: boolean) => {
-              console.log(isRetry);
-            }}
-            hasMore={false}
-          />
+          {profile && (
+            <Card className='p-4' style={{ height: 64 }}>
+              <EmotionLand
+                profile={profile}
+                onClick={() => setShowAddPost(true)}
+              />
+            </Card>
+          )}
+
+          <div className='mt-3'>
+            <FeedList
+              params={{
+                emotionType: emotion !== 'neutral' ? emotion : undefined,
+              }}
+            />
+          </div>
         </ResultPage>
       </main>
       <AddPostPopup visible={showAddPost} close={() => setShowAddPost(false)} />

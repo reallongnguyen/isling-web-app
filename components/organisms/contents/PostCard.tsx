@@ -1,56 +1,95 @@
+'use client';
+
 import { Avatar } from 'antd-mobile';
-import { HeartOutline, MessageOutline, MoreOutline } from 'antd-mobile-icons';
+import {
+  HeartFill,
+  HeartOutline,
+  MessageOutline,
+  MoreOutline,
+} from 'antd-mobile-icons';
+import { PostFeedItem } from '@/modules/feed/models';
+import { formatDistanceToNow } from 'date-fns';
+import { useState } from 'react';
 
-const demoAvatarImages = [
-  'https://images.unsplash.com/photo-1548532928-b34e3be62fc6?ixlib=rb-1.2.1&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&ixid=eyJhcHBfaWQiOjE3Nzg0fQ',
-  'https://images.unsplash.com/photo-1493666438817-866a91353ca9?ixlib=rb-0.3.5&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&s=b616b2c5b373a80ffc9636ba24f7a4a9',
-  'https://images.unsplash.com/photo-1542624937-8d1e9f53c1b9?ixlib=rb-1.2.1&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&ixid=eyJhcHBfaWQiOjE3Nzg0fQ',
-  'https://images.unsplash.com/photo-1546967191-fdfb13ed6b1e?ixlib=rb-1.2.1&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&ixid=eyJhcHBfaWQiOjE3Nzg0fQ',
-];
+interface PostCardProps {
+  post: PostFeedItem;
+  onLike?: () => void;
+  onUnlike?: () => void;
+}
 
-export default function PostCard() {
+const emotionEmojiMap: Record<string, string> = {
+  joy: '😊',
+  sadness: '😢',
+  anger: '😡',
+  fear: '😨',
+  joker: '🃏',
+  neutral: '😐',
+};
+
+export default function PostCard({ post, onLike, onUnlike }: PostCardProps) {
+  const { author, content, stats, createdAt } = post;
+  const [isLiked, setIsLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(stats.likes);
+  const timeAgo = formatDistanceToNow(new Date(createdAt), { addSuffix: true });
+
+  const handleLikeToggle = () => {
+    if (isLiked) {
+      setIsLiked(false);
+      setLikeCount((prev) => prev - 1);
+      onUnlike?.();
+    } else {
+      setIsLiked(true);
+      setLikeCount((prev) => prev + 1);
+      onLike?.();
+    }
+  };
+
+  // Check if the post has an emotion type (added as a custom property)
+  const emotionType = (content as { emotionType?: string }).emotionType;
+
   return (
     <div className='flex'>
       <div>
         <div className='rounded-full overflow-hidden'>
-          <Avatar
-            src={
-              demoAvatarImages[
-                Math.round(Math.random() * (demoAvatarImages.length - 1))
-              ]
-            }
-            style={{ '--size': '40px' }}
-          />
+          <Avatar src={author.avatar} style={{ '--size': '40px' }} />
         </div>
       </div>
-      <div className='ml-4'>
+      <div className='ml-4 w-full'>
         <div className='flex justify-between items-center'>
-          <div className='font-semibold'>John Doe</div>
+          <div className='font-semibold'>{author.name}</div>
           <div className='flex space-x-2 items-center'>
-            <div className='text-gray-500'>5m</div>
-            <div>😊</div>
+            <div className='text-gray-500 text-sm'>{timeAgo}</div>
+            {emotionType && <div>{emotionEmojiMap[emotionType] || '😐'}</div>}
             <div>
               <MoreOutline className='text-xl' />
             </div>
           </div>
         </div>
-        <div className='mt-0.5'>
-          Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-          eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
-          minim veniam, quis nostrud exercitation ullamco laboris nisi ut
-          aliquip ex ea commodo consequat.
-        </div>
-        <div className='flex items-center space-x-2 mt-2'>
-          <div>
-            <HeartOutline className='text-lg' />
+        <div className='mt-0.5'>{content.text}</div>
+        {content.media && content.media.length > 0 && (
+          <div className='mt-2 rounded-lg overflow-hidden'>
+            <img
+              src={content.media[0]}
+              alt='Post media'
+              className='w-full h-auto'
+            />
           </div>
+        )}
+        <div className='flex items-center space-x-2 mt-2'>
+          <button onClick={handleLikeToggle} className='flex items-center'>
+            {isLiked ? (
+              <HeartFill className='text-lg text-red-500' />
+            ) : (
+              <HeartOutline className='text-lg' />
+            )}
+          </button>
           <div>
             <MessageOutline className='text-lg' />
           </div>
           <div className='border-l border-gray-100 ml-2 pr-2 h-3' />
-          <div className='text-gray-500 mr-0.5!'>2 replies</div>
+          <div className='text-gray-500 mr-0.5!'>{stats.replies} replies</div>
           <div className='text-gray-200 mr-0.5!'>・</div>
-          <div className='text-gray-500'>24 likes</div>
+          <div className='text-gray-500'>{likeCount} likes</div>
         </div>
       </div>
     </div>
