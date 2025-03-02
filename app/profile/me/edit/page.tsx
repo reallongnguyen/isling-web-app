@@ -21,8 +21,35 @@ export default function EditProfile() {
   const [createUserForm] = Form.useForm();
   const avatar = Form.useWatch('avatar', createUserForm);
   const [fileList, setFileList] = useState<ImageUploadItem[]>([]);
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('');
 
   const { getUploadAvatar, uploadFile, updateProfile } = useProfile();
+
+  // Fetch and process the avatar URL
+  useEffect(() => {
+    const fetchAvatarUrl = async () => {
+      if (avatar && avatar.startsWith('gs://')) {
+        try {
+          const proxyUrl = viewImage(avatar);
+          const response = await fetch(proxyUrl);
+          const data = await response.json();
+          if (data && data.url) {
+            setAvatarUrl(data.url);
+          }
+        } catch (error) {
+          console.error('Error fetching avatar URL:', error);
+          setAvatarUrl('');
+        }
+      } else if (avatar) {
+        setAvatarUrl(avatar);
+      } else {
+        setAvatarUrl('');
+      }
+    };
+
+    fetchAvatarUrl();
+  }, [avatar]);
 
   const handleUploadAvatar = async (file: File): Promise<ImageUploadItem> => {
     const { uploadUrl, objectUrl } = await getUploadAvatar({
@@ -38,6 +65,21 @@ export default function EditProfile() {
     });
 
     createUserForm.setFieldValue('avatar', objectUrl);
+
+    // Process the uploaded image URL
+    try {
+      const proxyUrl = viewImage(objectUrl);
+      const response = await fetch(proxyUrl);
+      const data = await response.json();
+      if (data && data.url) {
+        setUploadedImageUrl(data.url);
+      } else {
+        setUploadedImageUrl(objectUrl);
+      }
+    } catch (error) {
+      console.error('Error fetching uploaded image URL:', error);
+      setUploadedImageUrl(objectUrl);
+    }
 
     return {
       url: objectUrl,
@@ -96,7 +138,7 @@ export default function EditProfile() {
                       >
                         <Image
                           sizes='180px'
-                          src={viewImage(url)}
+                          src={uploadedImageUrl || ''}
                           fill
                           alt='avatar'
                         />
@@ -109,7 +151,7 @@ export default function EditProfile() {
                         <>
                           <Image
                             sizes='180px'
-                            src={viewImage(avatar)}
+                            src={avatarUrl || ''}
                             fill
                             alt='avatar'
                           />

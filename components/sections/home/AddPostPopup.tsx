@@ -41,6 +41,32 @@ export default function AddPostPopup(props: Readonly<AddPostPopupProps>) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { createEmotion, isCreating } = useEmotionService();
   const queryClient = useQueryClient();
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+
+  // Fetch and process the avatar URL
+  useEffect(() => {
+    const fetchAvatarUrl = async () => {
+      if (profile?.avatar?.startsWith('gs://')) {
+        try {
+          const proxyUrl = viewImage(profile.avatar);
+          const response = await fetch(proxyUrl);
+          const data = await response.json();
+          if (data && data.url) {
+            setAvatarUrl(data.url);
+          }
+        } catch (error) {
+          console.error('Error fetching avatar URL:', error);
+          setAvatarUrl(profile.avatar || '');
+        }
+      } else if (profile?.avatar) {
+        setAvatarUrl(profile.avatar);
+      } else {
+        setAvatarUrl('');
+      }
+    };
+
+    fetchAvatarUrl();
+  }, [profile?.avatar]);
 
   // Reset form when popup is opened/closed
   useEffect(() => {
@@ -124,12 +150,7 @@ export default function AddPostPopup(props: Readonly<AddPostPopupProps>) {
         <div>
           <div className='relative w-[40px] aspect-square rounded-full overflow-hidden'>
             {profile?.avatar && (
-              <Image
-                src={viewImage(profile.avatar)}
-                sizes='40px'
-                fill
-                alt='avatar'
-              />
+              <Image src={avatarUrl} sizes='40px' fill alt='avatar' />
             )}
             {!profile?.avatar && (
               <div className='w-[40px] aspect-square flex justify-center items-center bg-gray-200'>
@@ -156,7 +177,7 @@ export default function AddPostPopup(props: Readonly<AddPostPopupProps>) {
             <TextArea
               autoFocus
               autoSize
-              placeholder='How are you feeling?'
+              placeholder='How are you feeling? Add a note (optional)'
               value={note}
               onChange={handleNoteChange}
               maxLength={MAX_NOTE_LENGTH}

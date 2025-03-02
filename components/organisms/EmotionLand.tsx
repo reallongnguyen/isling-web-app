@@ -3,7 +3,7 @@ import { Profile } from '@/modules/user/models/profile.model';
 import { Button } from 'antd-mobile';
 import { UserOutline } from 'antd-mobile-icons';
 import Image from 'next/image';
-import { MouseEvent } from 'react';
+import { MouseEvent, useState, useEffect } from 'react';
 import { useEmotionSelection } from '@/modules/emotion/hooks';
 
 const emotions = [
@@ -22,6 +22,32 @@ export interface EmotionLandProps {
 export default function EmotionLand(props: Readonly<EmotionLandProps>) {
   const { profile, onClick } = props;
   const { emotion, handleEmotionChange, isLoading } = useEmotionSelection();
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+
+  // Fetch and process the avatar URL
+  useEffect(() => {
+    const fetchAvatarUrl = async () => {
+      if (profile?.avatar?.startsWith('gs://')) {
+        try {
+          const proxyUrl = viewImage(profile.avatar);
+          const response = await fetch(proxyUrl);
+          const data = await response.json();
+          if (data && data.url) {
+            setAvatarUrl(data.url);
+          }
+        } catch (error) {
+          console.error('Error fetching avatar URL:', error);
+          setAvatarUrl(profile.avatar || '');
+        }
+      } else if (profile?.avatar) {
+        setAvatarUrl(profile.avatar);
+      } else {
+        setAvatarUrl('');
+      }
+    };
+
+    fetchAvatarUrl();
+  }, [profile.avatar]);
 
   const handleClick =
     (newEmotion: string) => (event: MouseEvent<HTMLButtonElement>) => {
@@ -34,16 +60,11 @@ export default function EmotionLand(props: Readonly<EmotionLandProps>) {
       <div className='flex justify-center'>
         <div className='relative w-[40px] aspect-square rounded-full overflow-hidden'>
           {profile.avatar && (
-            <Image
-              src={viewImage(profile.avatar)}
-              sizes='40px'
-              fill
-              alt='avatar'
-            />
+            <Image src={avatarUrl || ''} sizes='40px' fill alt='avatar' />
           )}
           {!profile.avatar && (
             <div className='w-[40px] aspect-square flex justify-center items-center bg-gray-200'>
-              <UserOutline className='text-5xl text-white' />
+              <UserOutline className='text-2xl text-white' />
             </div>
           )}
         </div>

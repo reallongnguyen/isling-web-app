@@ -6,6 +6,7 @@ import { UserOutline } from 'antd-mobile-icons';
 import dayjs from 'dayjs';
 import { useRouter } from 'next/navigation';
 import { viewImage } from '@/modules/common/image-proxy';
+import { useState, useEffect } from 'react';
 
 export interface UserProfileProps {
   profile: Profile;
@@ -15,6 +16,32 @@ export default function UserProfile(props: Readonly<UserProfileProps>) {
   const { profile } = props;
   const joinedAt = dayjs(profile.createdAt).format('MMMM YYYY');
   const router = useRouter();
+  const [avatarUrl, setAvatarUrl] = useState<string>('');
+
+  // Fetch and process the avatar URL
+  useEffect(() => {
+    const fetchAvatarUrl = async () => {
+      if (profile?.avatar?.startsWith('gs://')) {
+        try {
+          const proxyUrl = viewImage(profile.avatar);
+          const response = await fetch(proxyUrl);
+          const data = await response.json();
+          if (data && data.url) {
+            setAvatarUrl(data.url);
+          }
+        } catch (error) {
+          console.error('Error fetching avatar URL:', error);
+          setAvatarUrl(profile.avatar || '');
+        }
+      } else if (profile?.avatar) {
+        setAvatarUrl(profile.avatar);
+      } else {
+        setAvatarUrl('');
+      }
+    };
+
+    fetchAvatarUrl();
+  }, [profile.avatar]);
 
   const goToEditProfile = () => {
     router.push('/profile/me/edit');
@@ -28,7 +55,7 @@ export default function UserProfile(props: Readonly<UserProfileProps>) {
             <div className='flex justify-center'>
               <div className='relative w-[80px] aspect-square rounded-full overflow-hidden'>
                 {profile.avatar && (
-                  <Image src={viewImage(profile.avatar)} fill alt='avatar' />
+                  <Image src={avatarUrl || ''} fill alt='avatar' />
                 )}
                 {!profile.avatar && (
                   <div className='w-[80px] aspect-square flex justify-center items-center bg-gray-200'>
