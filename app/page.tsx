@@ -62,14 +62,11 @@ export default function Home() {
               />
             </Card>
           )}
-
-          <div className='mt-3'>
-            <FeedList
-              params={{
-                emotionType: emotion !== 'neutral' ? emotion : undefined,
-              }}
-            />
-          </div>
+          <FeedList
+            params={{
+              emotionType: emotion !== 'neutral' ? emotion : undefined,
+            }}
+          />
         </ResultPage>
       </main>
       <AddPostPopup visible={showAddPost} close={() => setShowAddPost(false)} />

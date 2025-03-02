@@ -1,6 +1,6 @@
 'use client';
 
-import { Avatar } from 'antd-mobile';
+import { Avatar, ResultPage } from 'antd-mobile';
 import { EmotionFeedItem } from '@/modules/feed/models';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -94,75 +94,77 @@ export default function EmotionCard({
   const hasNote = extendedContent.note && extendedContent.note.trim() !== '';
 
   return (
-    <div className='flex'>
-      <div>
-        <div className='rounded-full overflow-hidden'>
-          <Avatar src={avatarUrl || ''} style={{ '--size': '40px' }} />
-        </div>
-      </div>
-      <div className='ml-4 w-full'>
-        <div className='flex justify-between items-center'>
-          <div className='flex items-center'>
-            <div className='font-semibold'>{author.name}</div>
-            <div className='ml-1'>
-              <span className='font-medium'></span> feeling{' '}
-              <span className='font-medium'>{emotionType}</span>
-            </div>
-          </div>
-          <div className='flex space-x-2 items-center'>
-            <div className='text-gray-500 text-sm'>{timeAgo}</div>
-            <div>{emotionEmojiMap[emotionType] || '😐'}</div>
-            <div>
-              <MoreOutline className='text-xl' />
-            </div>
+    <ResultPage.Card className='p-4 mt-3'>
+      <div className='flex'>
+        <div>
+          <div className='rounded-full overflow-hidden'>
+            <Avatar src={avatarUrl || ''} style={{ '--size': '40px' }} />
           </div>
         </div>
-
-        {hasNote ? (
-          <>
-            <div className='mt-0.5'></div>
-            <div className='mt-1'>{extendedContent.note}</div>
-          </>
-        ) : (
-          <div>
+        <div className='ml-4 w-full'>
+          <div className='flex justify-between items-center'>
             <div className='flex items-center'>
-              <div className='text-lg mr-2 flex space-x-1'>
-                {Array.from({ length: 5 }).map((_, index) => (
-                  <div key={id + index} className='text-lg'>
-                    {emotionEmojiMap[emotionType] || '😐'}
-                  </div>
-                ))}
+              <div className='font-semibold'>{author.name}</div>
+              <div className='ml-1'>
+                <span className='font-medium'></span> feeling{' '}
+                <span className='font-medium'>{emotionType}</span>
               </div>
-              {/* <div>
+            </div>
+            <div className='flex space-x-2 items-center'>
+              <div className='text-gray-500 text-sm'>{timeAgo}</div>
+              <div>{emotionEmojiMap[emotionType] || '😐'}</div>
+              <div>
+                <MoreOutline className='text-xl' />
+              </div>
+            </div>
+          </div>
+
+          {hasNote ? (
+            <>
+              <div className='mt-0.5'></div>
+              <div className='mt-1'>{extendedContent.note}</div>
+            </>
+          ) : (
+            <div>
+              <div className='flex items-center'>
+                <div className='text-lg mr-2 flex space-x-1'>
+                  {Array.from({ length: 5 }).map((_, index) => (
+                    <div key={id + index} className='text-lg'>
+                      {emotionEmojiMap[emotionType] || '😐'}
+                    </div>
+                  ))}
+                </div>
+                {/* <div>
                 <span className='font-medium'>{author.name}</span> is feeling{' '}
                 <span className='font-medium'>{emotionType}</span>
               </div> */}
+              </div>
+              <div className='mt-1 text-sm text-gray-500 italic'>
+                {getPromptForEmotion(emotionType, author.name)}
+              </div>
             </div>
-            <div className='mt-1 text-sm text-gray-500 italic'>
-              {getPromptForEmotion(emotionType, author.name)}
-            </div>
-          </div>
-        )}
+          )}
 
-        {/* Add interaction elements similar to PostCard */}
-        <div className='flex items-center space-x-2 mt-2'>
-          <button onClick={handleLikeToggle} className='flex items-center'>
-            {isLiked ? (
-              <HeartFill className='text-lg text-red-500' />
-            ) : (
-              <HeartOutline className='text-lg' />
-            )}
-          </button>
-          <div>
-            <MessageOutline className='text-lg' />
+          {/* Add interaction elements similar to PostCard */}
+          <div className='flex items-center space-x-2 mt-2'>
+            <button onClick={handleLikeToggle} className='flex items-center'>
+              {isLiked ? (
+                <HeartFill className='text-lg text-red-500' />
+              ) : (
+                <HeartOutline className='text-lg' />
+              )}
+            </button>
+            <div>
+              <MessageOutline className='text-lg' />
+            </div>
+            <div className='border-l border-gray-100 ml-2 pr-2 h-3' />
+            <div className='text-gray-500 mr-0.5!'>0 replies</div>
+            <div className='text-gray-200 mr-0.5!'>・</div>
+            <div className='text-gray-500'>{likeCount} likes</div>
           </div>
-          <div className='border-l border-gray-100 ml-2 pr-2 h-3' />
-          <div className='text-gray-500 mr-0.5!'>0 replies</div>
-          <div className='text-gray-200 mr-0.5!'>・</div>
-          <div className='text-gray-500'>{likeCount} likes</div>
         </div>
       </div>
-    </div>
+    </ResultPage.Card>
   );
 }
 
