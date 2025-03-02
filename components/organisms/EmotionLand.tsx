@@ -5,6 +5,7 @@ import { Button } from 'antd-mobile';
 import { UserOutline } from 'antd-mobile-icons';
 import { useAtom } from 'jotai';
 import Image from 'next/image';
+import { MouseEvent } from 'react';
 
 const emotions = [
   { label: '😊', value: 'joy' },
@@ -16,24 +17,28 @@ const emotions = [
 
 export interface EmotionLandProps {
   profile: Profile;
+  onClick?: () => void;
 }
 
 export default function EmotionLand(props: Readonly<EmotionLandProps>) {
-  const { profile } = props;
+  const { profile, onClick } = props;
   const [emotion, setEmotion] = useAtom(emotionAtom);
 
-  const handleChangeEmotion = (newEmotion: string) => () => {
-    if (emotion === newEmotion) {
-      setEmotion('neutral');
+  const handleChangeEmotion =
+    (newEmotion: string) => (event: MouseEvent<HTMLButtonElement>) => {
+      event.stopPropagation();
 
-      return;
-    }
+      if (emotion === newEmotion) {
+        setEmotion('neutral');
 
-    setEmotion(newEmotion);
-  };
+        return;
+      }
+
+      setEmotion(newEmotion);
+    };
 
   return (
-    <div className='flex items-center h-full'>
+    <div className='flex items-center h-full' onClick={onClick}>
       <div className='flex justify-center'>
         <div className='relative w-[40px] aspect-square rounded-full overflow-hidden'>
           {profile.avatar && (

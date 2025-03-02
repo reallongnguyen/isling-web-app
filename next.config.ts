@@ -10,6 +10,12 @@ const nextConfig: NextConfig = {
       {
         hostname: 'storage.googleapis.com',
       },
+      {
+        hostname: 'api.dev.isling.me',
+      },
+      {
+        hostname: 'api.isling.me',
+      },
     ],
   },
 };

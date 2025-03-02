@@ -22,7 +22,7 @@ export default function NavBar(props: Readonly<NavBarProps>) {
     <>
       <SafeArea position='top' />
       <AntNavBar
-        className='backdrop-blur-md bg-white/60 fixed top-0 w-[100dvw] z-50'
+        className='backdrop-blur-md bg-white/40 fixed top-0 w-[100dvw] z-50'
         back={back}
         onBack={onBack ?? goBack}
         backIcon={backIcon}

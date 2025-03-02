@@ -1,14 +1,15 @@
 'use client';
 
 import TabBar from '@/components/organisms/TabBar';
-import React from 'react';
+import React, { useState } from 'react';
 import { InfiniteScroll, PullToRefresh, ResultPage } from 'antd-mobile';
 import EmotionLand from '@/components/organisms/EmotionLand';
 import useLoggedInUser from '@/modules/user/hooks/useLoggedInUser';
 import { useAtomValue } from 'jotai';
 import { emotionAtom } from '@/modules/ping/store/emotion';
-import Post from '@/components/organisms/contents/Post';
+import PostCard from '@/components/organisms/contents/PostCard';
 import { FireFill } from 'antd-mobile-icons';
+import AddPostPopup from '@/components/sections/home/AddPostPopup';
 
 const emotionColorMap: Record<string, string> = {
   joy: '#FACC31',
@@ -22,6 +23,7 @@ const emotionColorMap: Record<string, string> = {
 export default function Home() {
   const { profile } = useLoggedInUser();
   const emotion = useAtomValue(emotionAtom);
+  const [showAddPost, setShowAddPost] = useState(false);
 
   const Card = ResultPage.Card;
 
@@ -55,12 +57,15 @@ export default function Home() {
           <PullToRefresh>
             {profile && (
               <Card className='p-4' style={{ height: 64 }}>
-                <EmotionLand profile={profile} />
+                <EmotionLand
+                  profile={profile}
+                  onClick={() => setShowAddPost(true)}
+                />
               </Card>
             )}
             {[1, 2, 3, 4, 5, 6, 7, 8].map((index) => (
-              <Card key={index} className='p-4' style={{ marginTop: 12 }}>
-                <Post />
+              <Card key={index} className='p-4 mt-3'>
+                <PostCard />
               </Card>
             ))}
           </PullToRefresh>
@@ -72,6 +77,7 @@ export default function Home() {
           />
         </ResultPage>
       </main>
+      <AddPostPopup visible={showAddPost} close={() => setShowAddPost(false)} />
       <TabBar />
     </div>
   );

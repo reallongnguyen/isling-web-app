@@ -8,10 +8,10 @@ const demoAvatarImages = [
   'https://images.unsplash.com/photo-1546967191-fdfb13ed6b1e?ixlib=rb-1.2.1&q=80&fm=jpg&crop=faces&fit=crop&h=200&w=200&ixid=eyJhcHBfaWQiOjE3Nzg0fQ',
 ];
 
-export default function Post() {
+export default function PostCard() {
   return (
     <div className='flex'>
-      <div className=''>
+      <div>
         <div className='rounded-full overflow-hidden'>
           <Avatar
             src={
@@ -29,12 +29,11 @@ export default function Post() {
           <div className='flex space-x-2 items-center'>
             <div className='text-gray-500'>5m</div>
             <div>😊</div>
-            <div className=''>
+            <div>
               <MoreOutline className='text-xl' />
             </div>
           </div>
         </div>
-
         <div className='mt-0.5'>
           Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
           eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad
@@ -42,10 +41,10 @@ export default function Post() {
           aliquip ex ea commodo consequat.
         </div>
         <div className='flex items-center space-x-2 mt-2'>
-          <div className=''>
+          <div>
             <HeartOutline className='text-lg' />
           </div>
-          <div className=''>
+          <div>
             <MessageOutline className='text-lg' />
           </div>
           <div className='border-l border-gray-100 ml-2 pr-2 h-3' />
