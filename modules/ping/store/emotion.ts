@@ -1,3 +1,4 @@
-import { atom } from 'jotai';
+import { emotionTypeAtom } from '@/modules/emotion/store/emotion';
 
-export const emotionAtom = atom<string>('neutral');
+// Re-export the emotion atom from the new emotion module
+export const emotionAtom = emotionTypeAtom;

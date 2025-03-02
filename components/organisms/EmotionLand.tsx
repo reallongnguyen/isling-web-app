@@ -1,11 +1,10 @@
 import { viewImage } from '@/modules/common/image-proxy';
-import { emotionAtom } from '@/modules/ping/store/emotion';
 import { Profile } from '@/modules/user/models/profile.model';
 import { Button } from 'antd-mobile';
 import { UserOutline } from 'antd-mobile-icons';
-import { useAtom } from 'jotai';
 import Image from 'next/image';
 import { MouseEvent } from 'react';
+import { useEmotionSelection } from '@/modules/emotion/hooks';
 
 const emotions = [
   { label: '😊', value: 'joy' },
@@ -22,19 +21,12 @@ export interface EmotionLandProps {
 
 export default function EmotionLand(props: Readonly<EmotionLandProps>) {
   const { profile, onClick } = props;
-  const [emotion, setEmotion] = useAtom(emotionAtom);
+  const { emotion, handleEmotionChange, isLoading } = useEmotionSelection();
 
-  const handleChangeEmotion =
+  const handleClick =
     (newEmotion: string) => (event: MouseEvent<HTMLButtonElement>) => {
       event.stopPropagation();
-
-      if (emotion === newEmotion) {
-        setEmotion('neutral');
-
-        return;
-      }
-
-      setEmotion(newEmotion);
+      handleEmotionChange(newEmotion);
     };
 
   return (
@@ -62,14 +54,15 @@ export default function EmotionLand(props: Readonly<EmotionLandProps>) {
           {emotions.map((option) => (
             <div key={option.value}>
               <Button
+                loading={isLoading(option.value)}
                 className={`p-0! m-0! w-6! h-6! ${
                   emotion === option.value
                     ? 'bg-blue-400/40! border-blue-400/60!'
                     : ''
                 }`}
-                onClick={handleChangeEmotion(option.value)}
+                onClick={handleClick(option.value)}
               >
-                {option.label}
+                {!isLoading(option.value) && option.label}
               </Button>
             </div>
           ))}
